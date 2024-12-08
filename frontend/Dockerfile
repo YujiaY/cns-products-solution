@@ -1,18 +1,15 @@
 # Build stage
-FROM node:18 as build
+FROM node:18 AS build
 
 WORKDIR /app
-
-# Install Angular CLI globally
-RUN npm install -g @angular/cli
 
 # Copy package files
 COPY package*.json ./
 
-# Install dependencies
-RUN npm install
+# Install dependencies using clean install
+RUN npm ci
 
-# Copy source code
+# Copy source code (excluding node_modules due to .dockerignore)
 COPY . .
 
 # Build the application

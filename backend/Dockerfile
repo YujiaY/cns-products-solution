@@ -5,10 +5,10 @@ WORKDIR /app
 # Copy package files
 COPY package*.json ./
 
-# Install dependencies
-RUN npm install
+# Install dependencies using clean install
+RUN npm ci
 
-# Copy source code
+# Copy source code (excluding node_modules due to .dockerignore)
 COPY . .
 
 # Build if TypeScript is used
