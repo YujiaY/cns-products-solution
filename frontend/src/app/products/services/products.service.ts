@@ -7,6 +7,7 @@ import {
 } from "@angular/common/http";
 import { Observable, catchError, map, throwError } from "rxjs";
 import { Product, ProductDetail } from "../types/product-types";
+import { environment } from '../../../environments/environment';
 
 export interface PaginationParams {
   page?: number;
@@ -29,7 +30,7 @@ export interface PaginatedResult<T> {
 })
 export class ProductsService {
   // Public API endpoint to retrieve require data
-  private baseUrl: string = "http://localhost:3000"; // TODO: set url in env
+  private baseUrl: string = environment.apiUrl;
   private headers: HttpHeaders = new HttpHeaders({
     "Content-Type": "application/json",
   });
