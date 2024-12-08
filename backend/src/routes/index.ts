@@ -1,11 +1,17 @@
 import { Router, Request, Response } from "express";
-import { getProducts, getProductDetails } from "../lib/products";
+import {
+  getProducts,
+  getProductDetails,
+  IncomingProductResponseType,
+  IncomingPaginationMetaData,
+} from "../lib/products";
+import axios from "axios";
 
 const router: Router = Router();
 
 export interface PaginationQuery {
   page: number;
-  pageSize: number;
+  "page-size": number;
 }
 
 const DEFAULT_PAGE = 1;
@@ -19,13 +25,13 @@ export function parsePaginationQuery(req: Request): PaginationQuery {
 
   return {
     page: Math.max(1, page),
-    pageSize: Math.min(Math.max(1, pageSize), MAX_PAGE_SIZE),
+    "page-size": Math.min(Math.max(1, pageSize), MAX_PAGE_SIZE),
   };
 }
 
 export function validatePaginationQuery({
   page,
-  pageSize,
+  "page-size": pageSize,
 }: PaginationQuery): string | null {
   if (page < 1) {
     return "Page number must be greater than 0";
@@ -44,8 +50,9 @@ router.get(
   ): Promise<any> => {
     try {
       // Parse pagination parameters
-      const pagination = parsePaginationQuery(req);
-      const validationError = validatePaginationQuery(pagination);
+      const paginationQuery: PaginationQuery = parsePaginationQuery(req);
+      const validationError = validatePaginationQuery(paginationQuery);
+      console.log("paginationQuery mark 1", paginationQuery);
 
       // Validate pagination
       if (validationError) {
@@ -53,10 +60,43 @@ router.get(
         return;
       }
 
-      const productsResponse = await getProducts(pagination);
+      const productsResponse = await getProducts(paginationQuery);
+
+      const productsUrl =
+        "https://api.commbank.com.au/public/cds-au/v1/banking/products"; // TODO: value 3 into env
+      const headers = { "x-v": 3 }; // TODO: value 3 into env
+
+      console.log("paginationQuery mark 2", paginationQuery);
+
+      const jsonResponse = await axios.get<IncomingProductResponseType>(
+        productsUrl,
+        {
+          headers,
+          params: paginationQuery,
+        },
+      );
+
+      // Extract pagination info
+      const metaData: IncomingPaginationMetaData = jsonResponse.data.meta;
+      console.log("jsonResponse metaData", metaData);
+
+      const paginationInfo = {
+        totalRecords: metaData.totalRecords,
+        totalPages: metaData.totalPages,
+        currentPage: paginationQuery.page,
+        pageSize: paginationQuery["page-size"],
+      };
+
+      console.log("paginationInfo", paginationInfo);
+
+      // Set the X-Pagination header
+      res.set("X-Pagination", JSON.stringify(paginationInfo));
+      res.set("Access-Control-Expose-Headers", "X-Pagination");
+
+      // Send the final result
       res.json(productsResponse);
     } catch (error) {
-      console.log(error.message);
+      console.log("[routes]: Error fetching products:", error.message);
       next(error);
     }
   },

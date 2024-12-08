@@ -7,17 +7,17 @@ import {
 } from "../types/productTypes";
 import { ProductTransformer } from "../helpers/ProductTypesMapper";
 
-interface PaginationParams {
+interface PaginationQueryParams {
   page?: number;
-  pageSize?: number;
+  "page-size"?: number;
 }
 
-interface IncomingPaginationMetaData {
+export interface IncomingPaginationMetaData {
   totalRecords?: number;
   totalPages?: number;
 }
 
-interface IncomingProductResponseType {
+export interface IncomingProductResponseType {
   data: {
     products: IncomingProduct[];
   };
@@ -28,10 +28,7 @@ interface IncomingProductResponseType {
     next?: string;
     last?: string;
   };
-  meta: {
-    totalRecords: number;
-    totalPages: number;
-  };
+  meta: IncomingPaginationMetaData;
 }
 
 interface IncomingProductDetailResponseType {
@@ -51,15 +48,15 @@ interface IncomingProductDetailResponseType {
  * @returns Promise<Product[]>
  */
 export async function getProducts(
-  params?: PaginationParams,
+  params?: PaginationQueryParams,
 ): Promise<Product[]> {
-  const { page = 1, pageSize = 25 } = params || {};
-  const url: string =
-    "https://api.commbank.com.au/public/cds-au/v1/banking/products";
+  const { page = 1, "page-size": pageSize = 25 } = params || {};
+  const productsUrl =
+    "https://api.commbank.com.au/public/cds-au/v1/banking/products"; // TODO: value moving into env
   const headers = { "x-v": 3 }; // TODO: value 3 into env
 
   try {
-    const response = await axios.get<IncomingProductResponseType>(url, {
+    const response = await axios.get<IncomingProductResponseType>(productsUrl, {
       headers,
       params: {
         page: page,
@@ -73,7 +70,7 @@ export async function getProducts(
 
     return mappedProducts;
   } catch (error) {
-    console.error("Error fetching products:", error);
+    console.error("[Lib]: Error fetching products:", error);
     throw error;
   }
 }
@@ -86,12 +83,15 @@ export async function getProducts(
 export async function getProductDetails(
   product_id: string,
 ): Promise<ProductDetail> {
-  const url: string = `https://api.commbank.com.au/public/cds-au/v1/banking/products/${product_id}`;
+  const productsUrl = `https://api.commbank.com.au/public/cds-au/v1/banking/products/`; // TODO: value into env
   const headers = { "x-v": 4 }; // TODO: value 4 into env
   try {
-    const response = await axios.get<IncomingProductDetailResponseType>(url, {
-      headers,
-    });
+    const response = await axios.get<IncomingProductDetailResponseType>(
+      productsUrl + `${product_id}`,
+      {
+        headers,
+      },
+    );
 
     const productDetails = ProductTransformer.toProductDetail(
       response.data.data,
