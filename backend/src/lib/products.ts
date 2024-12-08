@@ -1,4 +1,5 @@
 import axios from "axios";
+import { environment } from "../config/environment";
 import {
   IncomingProduct,
   IncomingProductDetail,
@@ -51,9 +52,8 @@ export async function getProducts(
   params?: PaginationQueryParams,
 ): Promise<Product[]> {
   const { page = 1, "page-size": pageSize = 25 } = params || {};
-  const productsUrl =
-    "https://api.commbank.com.au/public/cds-au/v1/banking/products"; // TODO: value moving into env
-  const headers = { "x-v": 3 }; // TODO: value 3 into env
+  const productsUrl = `${environment.api.baseUrl}${environment.api.products.path}`;
+  const headers = { "x-v": environment.api.products.version };
 
   try {
     const response = await axios.get<IncomingProductResponseType>(productsUrl, {
@@ -83,8 +83,9 @@ export async function getProducts(
 export async function getProductDetails(
   product_id: string,
 ): Promise<ProductDetail> {
-  const productsUrl = `https://api.commbank.com.au/public/cds-au/v1/banking/products/`; // TODO: value into env
-  const headers = { "x-v": 4 }; // TODO: value 4 into env
+  const productsUrl = `${environment.api.baseUrl}${environment.api.products.path}/`;
+  const headers = { "x-v": environment.api.productDetails.version };
+  
   try {
     const response = await axios.get<IncomingProductDetailResponseType>(
       productsUrl + `${product_id}`,

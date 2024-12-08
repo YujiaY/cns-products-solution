@@ -6,6 +6,7 @@ import {
   IncomingPaginationMetaData,
 } from "../lib/products";
 import axios from "axios";
+import { environment } from "../config/environment";
 
 const router: Router = Router();
 
@@ -62,9 +63,8 @@ router.get(
 
       const productsResponse = await getProducts(paginationQuery);
 
-      const productsUrl =
-        "https://api.commbank.com.au/public/cds-au/v1/banking/products"; // TODO: value 3 into env
-      const headers = { "x-v": 3 }; // TODO: value 3 into env
+      const productsUrl = `${environment.api.baseUrl}${environment.api.products.path}`;
+      const headers = { "x-v": environment.api.products.version };
 
       console.log("paginationQuery mark 2", paginationQuery);
 
