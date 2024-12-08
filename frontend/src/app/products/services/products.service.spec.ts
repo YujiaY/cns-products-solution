@@ -51,4 +51,36 @@ describe("ProductsService", () => {
     // Mock the response with X-Pagination header
     req.flush(mockProducts);
   });
+
+  it("should handle pagination parameters", () => {
+    service.getProducts({ page: 2, pageSize: 10 }).subscribe();
+
+    const req = httpMock.expectOne(
+      (req) =>
+        req.url.includes("/products") &&
+        req.params.get("page") === "2" &&
+        req.params.get("page-size") === "10",
+    );
+    expect(req.request.method).toBe("GET");
+  });
+
+  it("should parse pagination headers correctly", () => {
+    const mockPagination = {
+      totalRecords: 100,
+      totalPages: 5,
+      currentPage: 1,
+      pageSize: 20,
+    };
+
+    service.getProducts().subscribe((response) => {
+      expect(response.pagination).toEqual(mockPagination);
+    });
+
+    const req = httpMock.expectOne((req) => req.url.includes("/products"));
+    req.flush([], {
+      headers: {
+        "X-Pagination": JSON.stringify(mockPagination),
+      },
+    });
+  });
 });

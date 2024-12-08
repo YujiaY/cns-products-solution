@@ -66,7 +66,6 @@ export async function getProducts(
     const mappedProducts: Product[] = response.data.data.products?.map(
       ProductTransformer.toProduct,
     );
-    console.log("mappedProducts", mappedProducts);
 
     return mappedProducts;
   } catch (error) {
@@ -85,7 +84,7 @@ export async function getProductDetails(
 ): Promise<ProductDetail> {
   const productsUrl = `${environment.api.baseUrl}${environment.api.products.path}/`;
   const headers = { "x-v": environment.api.productDetails.version };
-  
+
   try {
     const response = await axios.get<IncomingProductDetailResponseType>(
       productsUrl + `${product_id}`,
@@ -97,8 +96,6 @@ export async function getProductDetails(
     const productDetails = ProductTransformer.toProductDetail(
       response.data.data,
     );
-
-    console.log("productDetails", productDetails);
 
     return productDetails;
   } catch (error) {

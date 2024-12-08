@@ -7,7 +7,7 @@ import {
 } from "@angular/common/http";
 import { Observable, catchError, map, throwError } from "rxjs";
 import { Product, ProductDetail } from "../types/product-types";
-import { environment } from '../../../environments/environment';
+import { environment } from "../../../environments/environment";
 
 export interface PaginationParams {
   page?: number;
@@ -80,7 +80,6 @@ export class ProductsService {
     if (paginationHeader) {
       try {
         const parsed = JSON.parse(paginationHeader);
-        console.log("parsed paginationHeader", parsed);
         pagination = {
           totalRecords: parsed.totalRecords,
           totalPages: parsed.totalPages,

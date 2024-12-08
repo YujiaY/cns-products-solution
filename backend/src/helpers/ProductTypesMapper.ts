@@ -12,10 +12,30 @@ export class ProductTransformer {
    * @returns A Product object with the required properties.
    */
   static toProduct(incomingProduct: IncomingProduct): Product {
+    const todayUTC = new Date(
+      Date.UTC(
+        new Date().getUTCFullYear(),
+        new Date().getUTCMonth(),
+        new Date().getUTCDate(),
+        0,
+        0,
+        0,
+        0,
+      ),
+    );
+
+    // Use source dates if available, otherwise use calculated dates
+    const effective_from =
+      incomingProduct.effectiveFrom || todayUTC.toISOString();
+
+    const effective_to =
+      incomingProduct.effectiveTo ||
+      new Date(todayUTC.getTime() + 10 * 24 * 60 * 60 * 1000).toISOString();
+
     return {
       product_id: incomingProduct.productId,
-      effective_from: incomingProduct.effectiveFrom || "", // TODO: How to add this?
-      effective_to: incomingProduct.effectiveTo || "", // TODO: How to add this?
+      effective_from,
+      effective_to,
       product_category: incomingProduct.productCategory,
       name: incomingProduct.name,
       description: incomingProduct.description,

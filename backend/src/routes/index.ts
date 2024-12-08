@@ -53,7 +53,6 @@ router.get(
       // Parse pagination parameters
       const paginationQuery: PaginationQuery = parsePaginationQuery(req);
       const validationError = validatePaginationQuery(paginationQuery);
-      console.log("paginationQuery mark 1", paginationQuery);
 
       // Validate pagination
       if (validationError) {
@@ -66,8 +65,6 @@ router.get(
       const productsUrl = `${environment.api.baseUrl}${environment.api.products.path}`;
       const headers = { "x-v": environment.api.products.version };
 
-      console.log("paginationQuery mark 2", paginationQuery);
-
       const jsonResponse = await axios.get<IncomingProductResponseType>(
         productsUrl,
         {
@@ -78,7 +75,6 @@ router.get(
 
       // Extract pagination info
       const metaData: IncomingPaginationMetaData = jsonResponse.data.meta;
-      console.log("jsonResponse metaData", metaData);
 
       const paginationInfo = {
         totalRecords: metaData.totalRecords,
@@ -87,8 +83,6 @@ router.get(
         pageSize: paginationQuery["page-size"],
       };
 
-      console.log("paginationInfo", paginationInfo);
-
       // Set the X-Pagination header
       res.set("X-Pagination", JSON.stringify(paginationInfo));
       res.set("Access-Control-Expose-Headers", "X-Pagination");
@@ -96,7 +90,6 @@ router.get(
       // Send the final result
       res.json(productsResponse);
     } catch (error) {
-      console.log("[routes]: Error fetching products:", error.message);
       next(error);
     }
   },

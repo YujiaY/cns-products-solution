@@ -68,11 +68,9 @@ export class ProductsComponent implements OnInit, OnDestroy {
         }),
       )
       .subscribe((result: PaginatedResult<Product>) => {
-        // console.log("productsService.getProducts.result", result);
         const { data, pagination } = result;
 
         this.dataSource.data = data;
-        console.log("productsService.  pagination", pagination);
 
         // Update paginator properties to reflect server-side data
         this.totalRecords = pagination.totalRecords;
@@ -81,13 +79,10 @@ export class ProductsComponent implements OnInit, OnDestroy {
         this.pageIndex = pagination.currentPage - 1;
 
         if (this.paginator) {
-          // console.log("this.paginator", this.paginator);
           this.paginator.length = this.totalRecords;
           this.paginator.pageSize = this.pageSize;
           this.paginator.pageIndex = this.pageIndex;
         }
-
-        // this.dataSource.paginator = this.paginator;
       });
   }
 
