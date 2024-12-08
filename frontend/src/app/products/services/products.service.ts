@@ -6,7 +6,7 @@ import {
   HttpResponse,
 } from "@angular/common/http";
 import { Observable, catchError, map, throwError } from "rxjs";
-import { Product } from "../types/product-types";
+import { Product, ProductDetail } from "../types/product-types";
 
 export interface PaginationParams {
   page?: number;
@@ -95,5 +95,14 @@ export class ProductsService {
       data: products,
       pagination,
     };
+  }
+
+  public getProductDetail(productId: string): Observable<ProductDetail> {
+    return this.http.get<ProductDetail>(
+      `${this.baseUrl}/productDetails?productId=${productId}`,
+      {
+        headers: this.headers,
+      },
+    );
   }
 }

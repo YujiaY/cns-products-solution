@@ -14,8 +14,8 @@ export class ProductTransformer {
   static toProduct(incomingProduct: IncomingProduct): Product {
     return {
       product_id: incomingProduct.productId,
-      effective_from: incomingProduct.effectiveFrom || "",
-      effective_to: incomingProduct.effectiveTo || "",
+      effective_from: incomingProduct.effectiveFrom || "", // TODO: How to add this?
+      effective_to: incomingProduct.effectiveTo || "", // TODO: How to add this?
       product_category: incomingProduct.productCategory,
       name: incomingProduct.name,
       description: incomingProduct.description,
@@ -31,6 +31,8 @@ export class ProductTransformer {
   static toProductDetail(incomingDetail: IncomingProductDetail): ProductDetail {
     return {
       product_id: incomingDetail.productId,
+      name: incomingDetail.name,
+      description: incomingDetail.description,
       features: [...incomingDetail.features],
       eligibility: [...incomingDetail.eligibility],
       fees: [...incomingDetail.fees],

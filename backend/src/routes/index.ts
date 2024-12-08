@@ -110,7 +110,7 @@ router.get(
     next: (e: Error) => void,
   ): Promise<any> => {
     try {
-      const productId = req.query["product_id"] as string;
+      const productId = req.query["productId"] as string;
 
       if (!productId) {
         return res.status(400).json({ error: "Product Id is required" });
