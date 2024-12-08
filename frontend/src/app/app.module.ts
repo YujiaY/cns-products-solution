@@ -4,7 +4,6 @@ import { HttpClientModule } from "@angular/common/http";
 
 import { AppRoutingModule } from "./app-routing.module";
 import { AppComponent } from "./app.component";
-import { ProductsComponent } from "./products/products.component";
 import { BrowserAnimationsModule } from "@angular/platform-browser/animations";
 
 import { MatListModule } from "@angular/material/list";
@@ -12,13 +11,11 @@ import { MatCardModule } from "@angular/material/card";
 import { MatTableModule } from "@angular/material/table";
 import { MatPaginatorModule } from "@angular/material/paginator";
 import { MatToolbarModule } from "@angular/material/toolbar";
-import { ProductDetailComponent } from "./products/product-detail/product-detail.component";
-import { MatIconModule } from "@angular/material/icon";
-import { MatButtonModule } from "@angular/material/button";
 import { MatProgressSpinnerModule } from "@angular/material/progress-spinner";
+import { ProductsModule } from "./products/products.module";
 
 @NgModule({
-  declarations: [AppComponent, ProductsComponent, ProductDetailComponent],
+  declarations: [AppComponent],
   imports: [
     BrowserModule,
     AppRoutingModule,
@@ -28,10 +25,9 @@ import { MatProgressSpinnerModule } from "@angular/material/progress-spinner";
     MatCardModule,
     MatTableModule,
     MatPaginatorModule,
-    MatIconModule,
     MatToolbarModule,
-    MatButtonModule,
     MatProgressSpinnerModule,
+    ProductsModule, // TODO: Lazy loading
   ],
   providers: [],
   bootstrap: [AppComponent],
