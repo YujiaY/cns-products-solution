@@ -33,9 +33,9 @@ export interface IncomingProductDetail {
   productId: string; // CommBank’s unique identifier for this product.
   name: string;
   description: string;
-  features: Feature[];
-  eligibility: Eligibility[];
-  fees: Fee[];
+  features?: Feature[] | null;
+  eligibility?: Eligibility[] | null;
+  fees?: Fee[] | null;
 }
 
 export interface ProductDetail {

@@ -53,9 +53,10 @@ export class ProductTransformer {
       product_id: incomingDetail.productId,
       name: incomingDetail.name,
       description: incomingDetail.description,
-      features: [...incomingDetail.features],
-      eligibility: [...incomingDetail.eligibility],
-      fees: [...incomingDetail.fees],
+
+      features: [...(incomingDetail.features ?? [])],
+      eligibility: [...(incomingDetail.eligibility ?? [])],
+      fees: [...(incomingDetail.fees ?? [])],
     };
   }
 }
