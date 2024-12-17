@@ -1,21 +1,34 @@
-import { Component, OnInit, ViewChild, OnDestroy } from "@angular/core";
 import {
+  Component,
+  OnInit,
+  OnDestroy,
+  AfterViewInit,
+  ViewChild,
+} from "@angular/core";
+import {
+  ProductsService,
   PaginatedResult,
   PaginationParams,
-  ProductsService,
 } from "./services/products.service";
 import { Product } from "./types/product-types";
-import { MatTableDataSource } from "@angular/material/table";
 import { MatPaginator, PageEvent } from "@angular/material/paginator";
-import { Subject, catchError, finalize, takeUntil, throwError } from "rxjs";
-import { HttpErrorResponse } from "@angular/common/http";
+import { MatTableDataSource } from "@angular/material/table";
+import {
+  BehaviorSubject,
+  combineLatest,
+  map,
+  startWith,
+  tap,
+  catchError,
+  of,
+} from "rxjs";
 
 @Component({
   selector: "app-products",
   templateUrl: "./products.component.html",
   styleUrls: ["./products.component.css"],
 })
-export class ProductsComponent implements OnInit, OnDestroy {
+export class ProductsComponent implements OnInit {
   displayedColumns: string[] = [
     "product_id",
     "name",
@@ -23,78 +36,66 @@ export class ProductsComponent implements OnInit, OnDestroy {
     "product_category",
   ];
   dataSource = new MatTableDataSource<Product>([]);
-  isLoading: boolean = true;
-  errorMessage: string = "";
 
-  // Store pagination details locally
   totalRecords = 0;
   pageSize = 20;
   pageIndex = 0; // zero-based for Angular Material
-  pageSizeOptions = [5, 10, 20, 50];
-
-  private destroy$ = new Subject<void>();
+  pageSizeOptions = [5, 10, 20, 50, 100];
 
   @ViewChild(MatPaginator) paginator!: MatPaginator;
+
+  // Loading and error handling can be managed via combining streams
+  private loadingSubject = new BehaviorSubject<boolean>(true);
+  private errorSubject = new BehaviorSubject<string>("");
+  isLoading$ = this.loadingSubject.asObservable();
+  errorMessage$ = this.errorSubject.asObservable();
+
+  // Combine products$ from the service with loading and error states
+  products$ = this.productsService.products$.pipe(
+    tap(() => {
+      this.loadingSubject.next(false);
+      this.errorSubject.next("");
+    }),
+    catchError((error) => {
+      console.error("Error fetching products:", error);
+      this.loadingSubject.next(false);
+      this.errorSubject.next(error.message);
+      // Return fallback value so stream continues
+      return of({
+        data: [],
+        pagination: {
+          totalRecords: 0,
+          totalPages: 0,
+          currentPage: 1,
+          pageSize: this.pageSize,
+        },
+      });
+    }),
+    tap((result) => {
+      const { data, pagination } = result;
+      this.dataSource.data = data;
+      this.totalRecords = pagination.totalRecords;
+      this.pageSize = pagination.pageSize;
+      this.pageIndex = pagination.currentPage - 1; // Convert to zero-based index
+    }),
+  );
 
   constructor(private productsService: ProductsService) {}
 
   ngOnInit(): void {
-    this.fetchProducts({ page: 1, pageSize: this.pageSize });
+    // Initial load
+    this.productsService.updatePaginationParams({
+      page: 1,
+      pageSize: this.pageSize,
+    });
   }
 
-  ngOnDestroy(): void {
-    this.destroy$.next();
-    this.destroy$.complete();
-  }
-
-  /**
-   *  Fetches products from the ProductsService and updates pagination.
-   */
-  fetchProducts(params?: PaginationParams): void {
-    this.isLoading = true;
-    this.errorMessage = "";
-
-    this.productsService
-      .getProducts(params)
-      .pipe(
-        takeUntil(this.destroy$),
-        catchError((error: HttpErrorResponse) => {
-          console.error("Error fetching products:", error);
-          this.errorMessage = error.message;
-          return throwError(() => error);
-        }),
-        finalize(() => {
-          this.isLoading = false;
-        }),
-      )
-      .subscribe((result: PaginatedResult<Product>) => {
-        const { data, pagination } = result;
-
-        this.dataSource.data = data;
-
-        // Update paginator properties to reflect server-side data
-        this.totalRecords = pagination.totalRecords;
-        this.pageSize = pagination.pageSize;
-        // Note: currentPage is 1-based from server, convert to 0-based for Angular Material
-        this.pageIndex = pagination.currentPage - 1;
-
-        if (this.paginator) {
-          this.paginator.length = this.totalRecords;
-          this.paginator.pageSize = this.pageSize;
-          this.paginator.pageIndex = this.pageIndex;
-        }
-      });
-  }
-
-  /**
-   * Handles page changes from the MatPaginator.
-   * Called when user clicks on a different page or changes page size.
-   */
   onPageChange(event: PageEvent) {
+    this.loadingSubject.next(true);
+    this.errorSubject.next("");
     // Convert the zero-based pageIndex from Angular Material to 1-based for the API
     const page = event.pageIndex + 1;
     const pageSize = event.pageSize;
-
-    this.fetchProducts({ page, pageSize });
+    this.productsService.updatePaginationParams({ page, pageSize });
   }
 }

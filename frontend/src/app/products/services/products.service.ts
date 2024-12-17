@@ -4,8 +4,9 @@ import {
   HttpHeaders,
   HttpParams,
   HttpResponse,
+  HttpErrorResponse,
 } from "@angular/common/http";
-import { Observable, catchError, map, throwError } from "rxjs";
+import { BehaviorSubject, Observable, catchError, map, switchMap, throwError } from "rxjs";
 import { Product, ProductDetail } from "../types/product-types";
 import { environment } from "../../../environments/environment";
 
@@ -25,21 +26,25 @@ export interface PaginatedResult<T> {
   data: T[];
   pagination: PaginationInfo;
 }
+
 @Injectable({
   providedIn: "root",
 })
 export class ProductsService {
-  // Public API endpoint to retrieve require data
   private baseUrl: string = environment.apiUrl;
-  private headers: HttpHeaders = new HttpHeaders({
-    "Content-Type": "application/json",
-  });
+  private headers: HttpHeaders = new HttpHeaders({ "Content-Type": "application/json" });
+
+  // Holds the current pagination parameters
+  private paginationParamsSubject = new BehaviorSubject<PaginationParams>({ page: 1, pageSize: 20 });
+
+  // Expose products$ as an observable that listens to pagination changes
+  products$ = this.paginationParamsSubject.asObservable().pipe(
+      switchMap(params => this.getProducts(params))
+  );
 
   constructor(private http: HttpClient) {}
 
-  public getProducts(
-    params?: PaginationParams,
-  ): Observable<PaginatedResult<Product>> {
+  public getProducts(params?: PaginationParams): Observable<PaginatedResult<Product>> {
     const httpParams = new HttpParams({
       fromObject: {
         ...(params?.page && { page: params.page.toString() }),
@@ -48,25 +53,21 @@ export class ProductsService {
     });
 
     return this.http
-      .get<Product[]>(`${this.baseUrl}/products`, {
-        headers: this.headers,
-        observe: "response",
-        params: httpParams,
-      })
-      .pipe(
-        map((response: HttpResponse<Product[]>) =>
-          this.processProductResponse(response),
-        ),
-        catchError((error) => {
-          console.error("Error fetching products:", error);
-          return throwError(() => error);
-        }),
-      );
+        .get<Product[]>(`${this.baseUrl}/products`, {
+          headers: this.headers,
+          observe: "response",
+          params: httpParams,
+        })
+        .pipe(
+            map((response: HttpResponse<Product[]>) => this.processProductResponse(response)),
+            catchError((error) => {
+              console.error("Error fetching products:", error);
+              return throwError(() => error);
+            }),
+        );
   }
 
-  private processProductResponse(
-    response: HttpResponse<Product[]>,
-  ): PaginatedResult<Product> {
+  private processProductResponse(response: HttpResponse<Product[]>): PaginatedResult<Product> {
     const products = response.body ?? [];
     const paginationHeader = response.headers.get("X-Pagination");
 
@@ -91,18 +92,17 @@ export class ProductsService {
       }
     }
 
-    return {
-      data: products,
-      pagination,
-    };
+    return { data: products, pagination };
   }
 
   public getProductDetail(productId: string): Observable<ProductDetail> {
-    return this.http.get<ProductDetail>(
-      `${this.baseUrl}/productDetails?productId=${productId}`,
-      {
-        headers: this.headers,
-      },
-    );
+    return this.http.get<ProductDetail>(`${this.baseUrl}/productDetails?productId=${productId}`, {
+      headers: this.headers,
+    });
+  }
+
+  // Method to update pagination parameters
+  public updatePaginationParams(params: PaginationParams) {
+    this.paginationParamsSubject.next(params);
   }
 }
