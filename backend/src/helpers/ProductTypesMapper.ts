@@ -57,6 +57,18 @@ export class ProductTransformer {
       features: [...(incomingDetail.features ?? [])],
       eligibility: [...(incomingDetail.eligibility ?? [])],
       fees: [...(incomingDetail.fees ?? [])],
+
+      // features: Array.isArray(incomingDetail.features)
+      //   ? [...incomingDetail.features]
+      //   : [],
+      // eligibility: Array.isArray(incomingDetail.eligibility)
+      //   ? [...incomingDetail.eligibility]
+      //   : [],
+      // fees: Array.isArray(incomingDetail.fees) ? [...incomingDetail.fees] : [],
+      // Original:
+      // features: [...incomingDetail.features],
+      // eligibility: [...incomingDetail.eligibility],
+      // fees: [...incomingDetail.fees],
     };
   }
 }

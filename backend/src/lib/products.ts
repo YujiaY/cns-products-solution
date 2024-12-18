@@ -51,6 +51,7 @@ interface IncomingProductDetailResponseType {
 export async function getProducts(
   params?: PaginationQueryParams,
 ): Promise<Product[]> {
+  console.log("getProducts params:", params);
   const { page = 1, "page-size": pageSize = 25 } = params || {};
   const productsUrl = `${environment.api.baseUrl}${environment.api.products.path}`;
   const headers = { "x-v": environment.api.products.version };
@@ -66,6 +67,10 @@ export async function getProducts(
     const mappedProducts: Product[] = response.data.data.products?.map(
       ProductTransformer.toProduct,
     );
+    console.log("getProducts response.data:");
+    const responseData = { ...response.data };
+    delete responseData.data;
+    console.log(responseData);
 
     return mappedProducts;
   } catch (error) {
